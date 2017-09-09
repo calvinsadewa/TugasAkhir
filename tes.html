@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html ng-app>
+    <head>
+        <title>Tugas Akhir</title>
+        <script src="web_files/anychart-bundle.min.js"></script>
+        <script src="web_files/jquery.min.js"></script>
+        <link rel="stylesheet" href="web_files/anychart-ui.min.css" />
+        <link rel="stylesheet" href="web_files/bootstrap.min.css">
+        <script src="web_files/bootstrap.min.js"></script>
+        <script src="web_files/angular.min.js"></script>
+        <style>
+          html, body, #container, .tab-content, #home, #option, #series-container, #series{
+            width: 100%;
+            height: 100%;
+          }
+          #graph-container{
+            width: 70%;
+            height: 100%;
+            float: left;
+          }
+          #table-container{
+            width: 30%;
+            height: 100%;
+            float: right;
+          }
+          .table-show {
+            height: 50%;
+            overflow: scroll;
+          }
+          .table-price-header {
+            background-color: gray;
+          }
+          .table-price-row {
+            background-color: black;
+          }
+          .table-price-row-up {
+            color: green;
+          }
+          .table-price-row-down {
+            color: red;
+          }
+
+        </style>
+    </head>
+    <body>
+        <ul class="nav nav-tabs">
+          <li class="active"><a data-toggle="tab" href="#home">Home</a></li>
+          <li><a data-toggle="tab" href="#option">Option</a></li>
+          <li><a data-toggle="tab" href="#series">Series</a></li>
+        </ul>
+
+        <div class="tab-content">
+          <div id="home" class="tab-pane fade in active">
+            <button id="experiment-button">Start</button>
+            <div id="container">
+                <div id="graph-container">
+                </div>
+                <div id="table-container">
+                    <div class="table-show">
+                        <table class="table"> 
+                            <thead class="table-price-header">
+                                <th> Tanggal </th>
+                                <th> Open </th>
+                                <th> High </th>
+                                <th> Low </th>
+                                <th> Close </th>
+                                <th> Volume </th>
+                            </thead>
+                            <tbody id="tbody-price">
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-show">
+                        <table class="table"> 
+                            <thead class="table-price-header">
+                                <th> Tanggal </th>
+                                <th> Aksi </th>
+                                <th> Posisi USD </th>
+                                <th> Posisi GBP </th>
+                            </thead>
+                            <tbody id="tbody-action">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <script>
+                possible_query = {'DEBT_RAW': {'UK_debt_ratio_raw_now': {'param': {'series_name': 'UK DEBT PER GDP'},
+                                               'query': 'raw'},
+                                              'UK_debt_ratio_raw_q1': {'param': {'day': 90,
+                                                'series_name': 'UK DEBT PER GDP'},
+                                               'query': 'raw'},
+                                              'UK_debt_ratio_raw_q2': {'param': {'day': 180,
+                                                'series_name': 'UK DEBT PER GDP'},
+                                               'query': 'raw'},
+                                              'US_debt_ratio_raw_now': {'param': {'series_name': 'US DEBT PER GDP'},
+                                               'query': 'raw'},
+                                              'US_debt_ratio_raw_q1': {'param': {'day': 90,
+                                                'series_name': 'US DEBT PER GDP'},
+                                               'query': 'raw'},
+                                              'US_debt_ratio_raw_q2': {'param': {'day': 180,
+                                                'series_name': 'US DEBT PER GDP'},
+                                               'query': 'raw'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'DEBT_RELATIVE': {'UK_debt_ratio_divided_by_q1': {'param': {'day': 90,
+                                                'series_name': 'UK DEBT PER GDP'},
+                                               'query': 'divided'},
+                                              'UK_debt_ratio_divided_by_q2': {'param': {'day': 180,
+                                                'series_name': 'UK DEBT PER GDP'},
+                                               'query': 'divided'},
+                                              'UK_debt_ratio_divided_by_q3': {'param': {'day': 270,
+                                                'series_name': 'UK DEBT PER GDP'},
+                                               'query': 'divided'},
+                                              'US_debt_ratio_divided_by_q1': {'param': {'day': 90,
+                                                'series_name': 'US DEBT PER GDP'},
+                                               'query': 'divided'},
+                                              'US_debt_ratio_divided_by_q2': {'param': {'day': 180,
+                                                'series_name': 'US DEBT PER GDP'},
+                                               'query': 'divided'},
+                                              'US_debt_ratio_divided_by_q3': {'param': {'day': 270,
+                                                'series_name': 'US DEBT PER GDP'},
+                                               'query': 'divided'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'GDP': {'UK_GDP_last_q1': {'param': {'day': 90, 'series_name': 'GDP_UK'},
+                                               'query': 'divided'},
+                                              'UK_GDP_last_q2': {'param': {'day': 180, 'series_name': 'GDP_UK'},
+                                               'query': 'divided'},
+                                              'UK_GDP_last_q3': {'param': {'day': 270, 'series_name': 'GDP_UK'},
+                                               'query': 'divided'},
+                                              'US_GDP_last_q1': {'param': {'day': 90, 'series_name': 'GDP_US'},
+                                               'query': 'divided'},
+                                              'US_GDP_last_q2': {'param': {'day': 180, 'series_name': 'GDP_US'},
+                                               'query': 'divided'},
+                                              'US_GDP_last_q3': {'param': {'day': 270, 'series_name': 'GDP_US'},
+                                               'query': 'divided'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'INFLATION': {'UK_inflation': {'param': {'series_name': 'UK_INFLATION'},
+                                               'query': 'raw'},
+                                              'UK_inflation_m1': {'param': {'day': 30, 'series_name': 'UK_INFLATION'},
+                                               'query': 'raw'},
+                                              'UK_inflation_m2': {'param': {'day': 60, 'series_name': 'UK_INFLATION'},
+                                               'query': 'raw'},
+                                              'US_inflation': {'param': {'series_name': 'US_INFLATION'}, 'query': 'raw'},
+                                              'US_inflation_m1': {'param': {'day': 30, 'series_name': 'US_INFLATION'},
+                                               'query': 'raw'},
+                                              'US_inflation_m2': {'param': {'day': 60, 'series_name': 'US_INFLATION'},
+                                               'query': 'raw'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'INTEREST_RATE': {'UK_interest_rate': {'param': {'series_name': 'UK INTEREST RATE'},
+                                               'query': 'raw'},
+                                              'UK_interest_rate_m1': {'param': {'day': 30,
+                                                'series_name': 'UK INTEREST RATE'},
+                                               'query': 'raw'},
+                                              'UK_interest_rate_m2': {'param': {'day': 60,
+                                                'series_name': 'UK INTEREST RATE'},
+                                               'query': 'raw'},
+                                              'US_interest_rate': {'param': {'series_name': 'US INTEREST RATE'},
+                                               'query': 'raw'},
+                                              'US_interest_rate_m1': {'param': {'day': 30,
+                                                'series_name': 'US INTEREST RATE'},
+                                               'query': 'raw'},
+                                              'US_interest_rate_m2': {'param': {'day': 60,
+                                                'series_name': 'US INTEREST RATE'},
+                                               'query': 'raw'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'STANDARD': {'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'},
+                                               'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'UNEMPLOYMENT_RAW': {'UK_unemployment_raw': {'param': {'series_name': 'UK UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'UK_unemployment_raw_m1': {'param': {'day': 30,
+                                                'series_name': 'UK UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'UK_unemployment_raw_m2': {'param': {'day': 60,
+                                                'series_name': 'UK UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'US_unemployment_raw': {'param': {'series_name': 'US UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'US_unemployment_raw_m1': {'param': {'day': 30,
+                                                'series_name': 'US UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'US_unemployment_raw_m2': {'param': {'day': 60,
+                                                'series_name': 'US UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}},
+                                             'UNEMPLOYMENT_RELATIVE': {'UK_unemployment_divided_by_m1': {'param': {'day': 30,
+                                                'series_name': 'UK UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'UK_unemployment_divided_by_m2': {'param': {'day': 60,
+                                                'series_name': 'UK UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'UK_unemployment_divided_by_m3': {'param': {'day': 90,
+                                                'series_name': 'UK UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'US_unemployment_divided_by_m1': {'param': {'day': 30,
+                                                'series_name': 'US UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'US_unemployment_divided_by_m2': {'param': {'day': 60,
+                                                'series_name': 'US UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'US_unemployment_divided_by_m3': {'param': {'day': 90,
+                                                'series_name': 'US UNEMPLOYMENT'},
+                                               'query': 'divided'},
+                                              'a15': {'param': {'day': 15, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a3': {'param': {'day': 3, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a30': {'param': {'day': 30, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'a7': {'param': {'day': 7, 'series_name': 'GBP/USD'}, 'query': 'average'},
+                                              'current': {'param': {'series_name': 'GBP/USD'}, 'query': 'raw'}}}
+                possible_query_key = ['STANDARD','GDP','INFLATION','INTEREST_RATE','UNEMPLOYMENT_RAW','UNEMPLOYMENT_RELATIVE','DEBT_RAW','DEBT_RELATIVE']
+                var best_options =  [{"machine":{"kind":"SOFNN","param":{"delta":4,"krmse":0.8,"initial_width":0.4,"k":1.12,"lambd":0.8,"window":257,"standardization":308}},"strategy":{"leverage":2,"strategy_kind":"antip","lag":13},"data_transformation":{"lag":13,"query":"{\n \"a15\": {\n \"param\": {\n \"day\": 15,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a3\": {\n \"param\": {\n \"day\": 3,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a30\": {\n \"param\": {\n \"day\": 30,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a7\": {\n \"param\": {\n \"day\": 7,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"current\": {\n \"param\": {\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"raw\"\n }\n}"},"etc":{"starting_money":1000,"chart_type":"ohlc"}} ,
+                    {"machine":{"kind":"FOSELM","param":{"p":1,"L":40,"s":28,"standardization":87}},"strategy":{"leverage":2,"strategy_kind":"q","lag":13},"data_transformation":{"lag":7,"query":"{\n \"a15\": {\n \"param\": {\n \"day\": 15,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a3\": {\n \"param\": {\n \"day\": 3,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a30\": {\n \"param\": {\n \"day\": 30,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a7\": {\n \"param\": {\n \"day\": 7,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"current\": {\n \"param\": {\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"raw\"\n }\n}"},"etc":{"starting_money":1000,"chart_type":"ohlc"}} ,  {"machine":{"kind":"SOFNN","param":{"delta":4,"krmse":0.8,"initial_width":0.4,"k":1.12,"lambd":0.8,"window":116,"standardization":13}},"strategy":{"leverage":2,"strategy_kind":"antiq","lag":13},"data_transformation":{"lag":1,"query":"{\n \"UK_inflation\": {\n \"param\": {\n \"series_name\": \"UK_INFLATION\"\n },\n \"query\": \"raw\"\n },\n \"UK_inflation_m1\": {\n \"param\": {\n \"day\": 30,\n \"series_name\": \"UK_INFLATION\"\n },\n \"query\": \"raw\"\n },\n \"UK_inflation_m2\": {\n \"param\": {\n \"day\": 60,\n \"series_name\": \"UK_INFLATION\"\n },\n \"query\": \"raw\"\n },\n \"US_inflation\": {\n \"param\": {\n \"series_name\": \"US_INFLATION\"\n },\n \"query\": \"raw\"\n },\n \"US_inflation_m1\": {\n \"param\": {\n \"day\": 30,\n \"series_name\": \"US_INFLATION\"\n },\n \"query\": \"raw\"\n },\n \"US_inflation_m2\": {\n \"param\": {\n \"day\": 60,\n \"series_name\": \"US_INFLATION\"\n },\n \"query\": \"raw\"\n },\n \"a15\": {\n \"param\": {\n \"day\": 15,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a3\": {\n \"param\": {\n \"day\": 3,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a30\": {\n \"param\": {\n \"day\": 30,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"a7\": {\n \"param\": {\n \"day\": 7,\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"average\"\n },\n \"current\": {\n \"param\": {\n \"series_name\": \"GBP/USD\"\n },\n \"query\": \"raw\"\n }\n}"},"etc":{"starting_money":1000,"chart_type":"ohlc"}} ]
+                var option = JSON.parse(JSON.stringify(best_options[0]))
+
+                function update_option(updating, source_update) {
+                    for (key in updating) {
+                        if (source_update[key]) {
+                            if (source_update[key].constructor == Object) {
+                                update_option(updating[key],source_update[key])
+                            }
+                            else {
+                                updating[key] = source_update[key]
+                            }
+                        }
+                        else {
+                            delete updating[key]
+                        }
+                    }
+                    for (key in source_update) {
+                        if (updating[key]) {
+                            
+                        }
+                        else {
+                            updating[key] = source_update[key]
+                        }
+                    }
+                }
+
+                // Add to angular scope
+                function modifyScope(scope_changing_function) {
+                    angular.element($('#home')).ready(function () {
+                        scope = angular.element($('#home')).scope()
+                        scope_changing_function(scope)
+                    })
+                }
+
+                modifyScope(function(scope) {
+                    scope.option = option
+                    scope.encodeURIComponent = window.encodeURIComponent
+                    scope.best_options = best_options
+                    scope.update_option = update_option
+                    scope.$digest();
+                })
+
+                anychart.onDocumentReady(function() {
+
+                    var updateId = null;
+
+                    var ws = null;
+
+                    $('#experiment-button').click(function () {
+                        $("#graph-container").empty();
+                        $("#tbody-action").empty();
+                        $("#tbody-price").empty();
+                        var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+
+                        var tableData = []
+
+                        // create a stage    
+                        var stage = anychart.graphics.create("graph-container");
+
+                        // set the data
+                        var table = anychart.data.table('x');
+                        var assetA_mapper = {'value':"assetA"}
+                        var assetB_mapper = {'value':"assetB"}
+                        var worth_mapper = {'value':"worth"}
+                        var sharpe_mapper = {'value':"sharpe"}
+                        var sortino_mapper = {'value':"sortino"}
+                        var chart = anychart.stock();
+
+                        // set the series type and title
+                        var series = null;
+                        if (option.etc.chart_type == "ohlc") {
+                            var price_mapper = {'close':"price","open":"open","low":"low","high":"high"}
+                            series = chart.plot(0).ohlc(table.mapAs(price_mapper));
+                            series.fallingStroke("red");
+                            series.risingStroke("green");
+                        }
+                        if (option.etc.chart_type == "candlestick") {
+                            var price_mapper = {'close':"price","open":"open","low":"low","high":"high"}
+                            series = chart.plot(0).candlestick(table.mapAs(price_mapper));
+                            series.fallingStroke("red");
+                            series.risingStroke("green");
+                        }
+                        if (option.etc.chart_type == "line") {
+                            var price_mapper = {'value':"price"}
+                            series = chart.plot(0).line(table.mapAs(price_mapper));
+                        }
+                        series.name("GBP to USD Rate");
+
+                        var series2 = chart.plot(1).line(table.mapAs(assetA_mapper));
+                        series2.name("Total USD");
+
+                        var series3 = chart.plot(1).line(table.mapAs(assetB_mapper));
+                        series3.name("Total GBP");
+
+                        var series4 = chart.plot(2).area(table.mapAs(worth_mapper));
+                        series4.name("Worth in USD");
+                        var series5 = chart.plot(2).area(table.mapAs(sharpe_mapper));
+                        series5.name("Sharpe Ratio");
+                        var series6 = chart.plot(2).area(table.mapAs(sortino_mapper));
+                        series6.name("Sortino Ratio");
+                        chart.plot(1).height('20%');
+                        chart.plot(2).height('20%');
+                        chart.scroller().height('10% ')
+
+                        // set the chart container and initiate drawing the chart
+                        chart.container(stage);
+                        chart.draw();
+
+                        function update_chart() {
+                            table.addData(tableData)
+                            tableData = []
+
+                            //var start = new Date();
+                            //if (tableData.length > 0) {
+                            //    table.addData([tableData[0]])
+                            //    tableData.shift()
+                            //}
+                            //var end = new Date();
+                            //console.log(end-start)
+                        }
+                        if (ws) {
+                            ws.close()
+                        }
+                        var endExperiment = false;
+                        ws = new WebSocket("ws:/localhost:9246/");
+                        ws.onmessage = function (event) {
+                            var message = JSON.parse(event.data);
+                            var message_type = message[0]
+                            var message_data = message[1]
+                            if(message_type == "DATA") {
+                                if (message_data[2] == "price_change") {
+                                    var informations = message_data[3]
+                                    var date = message_data[0]
+
+                                    var tableRow = {
+                                        'x':date,
+                                        'price':informations[0],
+                                        'high':informations[4][0],
+                                        'low':informations[4][1],
+                                        'open':informations[1],
+                                        'assetA':informations[2][0],
+                                        'assetB':informations[2][1],
+                                        'worth':informations[2][0] + informations[2][1]*informations[0],
+                                        'sharpe':informations[3][0],
+                                        'sortino':informations[3][1],
+                                        'volume':informations[4][2]
+                                    }
+
+                                    tableData.push(tableRow)
+                                    var trEl = $('<tr></tr>')
+                                    trEl.addClass("table-price-row")
+                                    if (tableRow.open > tableRow.price) {
+                                        trEl.addClass("table-price-row-down")
+                                    }
+                                    else {
+                                        trEl.addClass("table-price-row-up")
+                                    }
+                                    trEl.append($('<td></td>').text(tableRow.x))
+                                    trEl.append($('<td></td>').text(tableRow.open.toFixed(5)))
+                                    trEl.append($('<td></td>').text(tableRow.high.toFixed(5)))
+                                    trEl.append($('<td></td>').text(tableRow.low.toFixed(5)))
+                                    trEl.append($('<td></td>').text(tableRow.price.toFixed(5)))
+                                    trEl.append($('<td></td>').text(tableRow.volume.toFixed(0)))
+                                    $('#tbody-price').prepend(trEl)
+                                }
+                                if (message_data[2] == 'position_change') {
+                                    var informations = message_data[3]
+                                    var date = message_data[0]
+                                    var assetA = informations[1][0]
+                                    var assetB = informations[1][1]
+                                    var prevAssetA = informations[2][0]
+                                    var position = ""
+                                    var trEl = $('<tr></tr>')
+                                    trEl.addClass("table-price-row")
+                                    if (assetA > prevAssetA) {
+                                        position = "SHORT"
+                                        trEl.addClass("table-price-row-down")
+                                    }
+                                    else {
+                                        position = "LONG"
+                                        trEl.addClass("table-price-row-up")
+                                    }
+                                    trEl.append($('<td></td>').text(date))
+                                    trEl.append($('<td></td>').text(position))
+                                    trEl.append($('<td></td>').text(assetA.toFixed(2)))
+                                    trEl.append($('<td></td>').text(assetB.toFixed(2)))
+                                    $('#tbody-action').prepend(trEl)
+                                }
+                            }
+                            if (message_type == "END") {
+                                endExperiment = true;
+                                ws.close()
+                                ws = null;
+                            }
+                            if (message_type == "ERROR"){
+                                console.log(message_data)
+                                alert(message_data);
+                            }
+                        };
+                        ws.onopen = function() {
+
+                            var msg = {
+                                type: "option",
+                                value: option
+                            };
+
+                            ws.send(JSON.stringify(msg));
+
+                            table.remove()
+                            var msg = {
+                                type: "experiment"
+                            };
+                            ws.send(JSON.stringify(msg));
+
+                            updateId = setInterval(function () {
+                                if (requestAnimationFrame) {
+                                    requestAnimationFrame(update_chart);
+                                } else {
+                                    update_chart();
+                                }
+                                if (endExperiment && tableData.length == 0) {
+                                    clearInterval(updateId);
+                                    updateId = null;
+                                }
+
+                            },2000)
+                        }
+                    });
+
+                });     
+            </script>
+          </div>
+          <div id="option" class="tab-pane fade">
+            <span class="col-md-12">
+                <h3 class="col-md-6">
+                    Opsi Mesin dan Strategi
+                    <select class="pull-right" ng-model="target_option" ng-change="update_option(option,target_option)">
+                        <option ng-value="best_options[0]">First</option>
+                        <option ng-value="best_options[1]">Second</option>
+                        <option ng-value="best_options[2]">Third</option>
+                    </select>
+                </h3>
+            </span>
+            <ul class="nav nav-tabs">
+              <li class="active"><a data-toggle="tab" href="#option-mesin">Mesin</a></li>
+              <li><a data-toggle="tab" href="#option-strategi">Strategi</a></li>
+              <li><a data-toggle="tab" href="#option-transformasi-data">Transformasi Data</a></li>
+              <li><a data-toggle="tab" href="#option-etc">Lain - lain</a></li>
+            </ul>
+            <div class="tab-content">
+                <div id="option-mesin" class="tab-pane fade in active">
+                    <script>
+                        function initiateMachineParameter() {
+                            option.machine.param = {}
+                            machine_type = option.machine.kind
+                            if (machine_type == "SOFNN") {
+                                option.machine.param.delta=0.05
+                                option.machine.param.krmse = 0.01
+                                option.machine.param.initial_width=0.4
+                                option.machine.param.k=1.12
+                                option.machine.param.lambd=0.8
+                                option.machine.param.window=120
+                                option.machine.param.standardization=0
+                            }
+                            if (machine_type == "FOSELM") {
+                                // Jumlah Mesin dalam ensemble
+                                option.machine.param.p = 1
+                                // Jumlah Neuron/mesin
+                                option.machine.param.L = 40
+                                // Timeliness
+                                option.machine.param.s = 100
+                                option.machine.param.standardization=0
+                            }
+                            if (machine_type == "GSEFS") {
+                                option.machine.param.fac = 0.0001
+                                option.machine.param.density_impact_degree = 4
+                                option.machine.param.standardization=0
+                            }
+                            if (machine_type == "GENEFIS") {
+                                option.machine.param.standardization=0
+                            }
+                        }
+
+                        // Add to angular scope
+                        angular.element($('#home')).ready(function () {
+                            angular.element($('#home')).scope().initiateMachineParameter = initiateMachineParameter
+                        })
+
+                        function changeSOFNNStandardization() {
+                            stnd = Number(option.machine.param.standardization)
+                            if (isNaN(stnd) || stnd == 0) {
+                                option.machine.param.delta=0.05
+                                option.machine.param.krmse = 0.01
+                            }
+                            else {
+                                option.machine.param.delta = 4
+                                option.machine.param.krmse = 0.8
+                            }
+                        }
+
+                        // Add to angular scope
+                        angular.element($('#home')).ready(function () {
+                            angular.element($('#home')).scope().changeSOFNNStandardization = changeSOFNNStandardization
+                        })
+                    </script>
+                    <h3>Opsi Mesin</h3>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <select class="form-control" ng-model="option.machine.kind" ng-change='initiateMachineParameter()'>
+                                <option value="SOFNN">SOFNN</option>
+                                <option value="FOSELM">FOSELM</option>
+                                <option value="GSEFS">GSEFS</option>
+                                <option value="GENEFIS">GENEFIS</option>
+                            </select>
+                            <div class="tab-pane fade active in">
+                                <h3>Parameter Mesin </h3>
+                                <div ng-if="option.machine.kind == 'SOFNN'">
+                                    <label for="machine-window">Window:</label>
+                                    <input type="number" class="form-control" id="machine-window" ng-model = "option.machine.param.window" placeholder="Length of data SOFNN will remember">
+                                    <label for="machine-standardization">Standardization:</label>
+                                    <input type="number" class="form-control" id="machine-standardization" ng-model = "option.machine.param.standardization" placeholder="Length of standardization window, 0 for no" ng-change="changeSOFNNStandardization()">
+                                    <button data-toggle="collapse" data-target="#advanced-machine-param">Advanced Parameter</button>
+                                    <div id="advanced-machine-param" class="collapse">
+                                        <label>Delta:</label>
+                                        <input type="number" class="form-control" ng-model = "option.machine.param.delta">
+                                        <label>Krmse:</label>
+                                        <input type="number" class="form-control" ng-model = "option.machine.param.krmse">
+                                        <label>Initial Width:</label>
+                                        <input type="number" class="form-control" ng-model = "option.machine.param.initial_width">
+                                        <label>K:</label>
+                                        <input type="number" class="form-control" ng-model = "option.machine.param.k">
+                                        <label>Lambda:</label>
+                                        <input type="number" class="form-control" ng-model = "option.machine.param.lambd">
+                                    </div>
+                                </div>
+                                <div ng-if="option.machine.kind == 'FOSELM'">
+                                    <label>Timeliness:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.s" placeholder="Length of data FOSELM will remember">
+                                    <label>Standardization:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.standardization" placeholder="Length of standardization window, 0 for no">
+                                    <label>Jumlah Mesin:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.p">
+                                    <label>Jumlah Neuron/Mesin:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.L">
+                                </div>
+                                <div ng-if="option.machine.kind == 'GSEFS'">
+                                    <label>Space Factor:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.fac">
+                                    <label>Density Impact Degree:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.density_impact_degree">
+                                    <label>Standardization:</label>
+                                    <input type="number" class="form-control" ng-model = "option.machine.param.standardization" placeholder="Length of standardization window, 0 for no">
+                                </div>
+                                <div ng-if="option.machine.kind == 'GENEFIS'">
+                                    <label for="machine-standardization">Standardization:</label>
+                                    <input type="number" class="form-control" id="machine-standardization" ng-model = "option.machine.param.standardization" placeholder="Length of standardization window, 0 for no">
+                                </div>
+                            </div>
+                            <br/>
+                        </div>
+                    </div>
+                </div>
+                <div id="option-strategi" class="tab-pane">
+                    <h3>Opsi Strategi</h3>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Leverage:</label>
+                            <input type="number" class="form-control" ng-model = "option.strategy.leverage">
+                            <br/>
+                            <label>Jenis Strategi:</label>
+                            <select class="form-control" ng-model = "option.strategy.strategy_kind">
+                                <option value="q">Q</option>
+                                <option value="antiq">AntiQ</option>
+                                <option value="p">Price</option>
+                                <option value="antip">Anti Price</option>
+                            </select>
+                            <br/>
+                            <label>Lag Antar Aksi:</label>
+                            <input type="number" class="form-control" ng-model = "option.strategy.lag"/>
+                            <br/>
+                        </div>
+                    </div>
+                </div>
+                <div id="option-transformasi-data" class="tab-pane">
+                    <script>
+                        selected_query_key = ""
+
+                        function change_selected_query_key(selected_query_key) {
+                            if (possible_query[selected_query_key]) {
+                                option.data_transformation.query = JSON.stringify(possible_query[selected_query_key], null, 2)
+                            }
+                        }
+
+                        modifyScope(function(scope) {
+                            scope.selected_query_key = selected_query_key
+                            scope.change_selected_query_key = change_selected_query_key
+                            scope.possible_query_key = possible_query_key
+                        })
+                    </script>
+                    <h3>Opsi Transformasi Data</h3>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Lag Prediksi</label>
+                            <input type="number" class="form-control" id="leverage" ng-model = "option.data_transformation.lag">
+                            <br/>
+                            <label>Query:</label>
+                            <select class="form-control" ng-model="selected_query_key" ng-options="key for key in possible_query_key" ng-change="change_selected_query_key(selected_query_key)">
+                            </select>
+                            <textarea rows="20" cols="50" ng-model = "option.data_transformation.query">
+                            </textarea>
+                        </div>
+                    </div>
+                </div>
+                <div id="option-etc" class="tab-pane">
+                    <h3>Opsi Lain-Lain</h3>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Starting Money:</label>
+                            <input type="number" class="form-control" ng-model = "option.etc.starting_money">
+                            <br/>
+                            <label>Tipe Chart:</label>
+                            <select class="form-control" ng-model = "option.etc.chart_type">
+                                <option value="ohlc">OHLC</option>
+                                <option value="candlestick">Candlestick</option>
+                                <option value="line">Line</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <button data-toggle="collapse" data-target="#option-total-representation">Debug</button>
+                <div id="option-total-representation" class="collapse">
+                    {{option}}
+                </div>
+            </div>
+          </div>
+          <div id="series" class="tab-pane fade">
+            <script>
+                function update_series_chart(selected_series) {
+                    $("#series-container").empty();
+                    $.get( "/get_series_data/" + encodeURIComponent(selected_series), function( data ) {
+                        series_data = data;
+
+                        // create a stage    
+                        var stage = anychart.graphics.create("series-container");
+
+                        // set the data
+                        var table = anychart.data.table();
+                        table.addData(series_data)
+                        var series_mapper = {'value':1}
+                        var chart = anychart.stock();
+
+                        var series_plot = chart.plot(0).line(table.mapAs(series_mapper));
+                        series_plot.name(selected_series);
+                        chart.container(stage);
+                        chart.draw();
+                    });
+                }
+                function refresh_series_list() {
+                    angular.element(document.body).injector().get('$http').get('/get_series').then(function (response) {
+                        angular.element($('#home')).scope().list_series = response.data;
+                    });
+                }
+                angular.element($('#home')).ready(function () {
+                    refresh_series_list()
+                    angular.element($('#home')).scope().update_series_chart = update_series_chart
+                })
+            </script>
+            <br/>
+            <div class="col-md-10">
+                <div style="float: left">
+                    <label>Series :</label>
+                    <select ng-model="selected_series" ng-change="update_series_chart(selected_series)">
+                        <option value="">---Please select---</option>
+                        <option ng-repeat="s in list_series" ng-value="s">{{s}}</option>
+                    </select>
+                </div>
+                <div style="float: right">
+                    <div class="dropdown">
+                        <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">Options
+                        <span class="caret"></span></button>
+                        <ul class="dropdown-menu">
+                          <li><a data-toggle="modal" data-target="#modal-update-series" >Update</a></li>
+                          <li><a data-toggle="modal" data-target="#modal-delete-series" >Delete</a></li>
+                          <li><a data-toggle="modal" data-target="#modal-create-series">Create</a></li>
+                          <li><a onclick="refresh_series_list()">Refresh Series List</a></li>
+                          <li><a ng-click="update_series_chart(selected_series)">Refresh Series Chart</a></li>
+                          <li><a ng-href="/download_series_data/{{encodeURIComponent(selected_series)}}.csv" target="_blank">Download Series Data</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function ajaxForm(form, action_url, div_id, wait_status, callback = null) {
+                    // Create the iframe...
+                    var iframe = document.createElement("iframe");
+                    iframe.setAttribute("id", "upload_iframe");
+                    iframe.setAttribute("name", "upload_iframe");
+                    iframe.setAttribute("width", "0");
+                    iframe.setAttribute("height", "0");
+                    iframe.setAttribute("border", "0");
+                    iframe.setAttribute("style", "width: 0; height: 0; border: none;");
+
+                    // Add to document...
+                    form.parentNode.appendChild(iframe);
+                    window.frames['upload_iframe'].name = "upload_iframe";
+
+                    iframeId = document.getElementById("upload_iframe");
+
+                    // Add event...
+                    var eventHandler = function () {
+
+                            if (iframeId.detachEvent) iframeId.detachEvent("onload", eventHandler);
+                            else iframeId.removeEventListener("load", eventHandler, false);
+
+                            // Message from server...
+                            if (iframeId.contentDocument) {
+                                content = iframeId.contentDocument.body.innerHTML;
+                            } else if (iframeId.contentWindow) {
+                                content = iframeId.contentWindow.document.body.innerHTML;
+                            } else if (iframeId.document) {
+                                content = iframeId.document.body.innerHTML;
+                            }
+
+                            document.getElementById(div_id).innerHTML = content;
+                            console.log(content)
+
+                            // Del the iframe...
+                            setTimeout('iframeId.parentNode.removeChild(iframeId)', 250);
+                            if (callback) {
+                                callback()
+                            }
+                        }
+
+                    if (iframeId.addEventListener) iframeId.addEventListener("load", eventHandler, true);
+                    if (iframeId.attachEvent) iframeId.attachEvent("onload", eventHandler);
+
+                    // Set properties of form...
+                    form.setAttribute("target", "upload_iframe");
+                    form.setAttribute("action", action_url);
+                    form.setAttribute("method", "post");
+                    form.setAttribute("enctype", "multipart/form-data");
+                    form.setAttribute("encoding", "multipart/form-data");
+
+                    // Submit the form...
+                    form.submit();
+
+                    document.getElementById(div_id).innerHTML = wait_status;
+                }
+                </script>
+
+            <!-- Modal Update Series-->
+            <div id="modal-update-series" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Update Series {{selected_series}}</h4>
+                  </div>
+                  <div class="modal-body">
+                    <form>
+                        <label> File CSV: </label>
+                        <input type="file" name="csv_file">
+                        </br>
+                        <input type="hidden" name="series_name" ng-value="selected_series">
+                        <input type="button" value="upload" 
+                                onClick="ajaxForm(this.form,'/update_series','modal-update-status','Uploading...'); return false;">
+                        <div id="modal-update-status"></div>
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <!-- Modal Delete Series-->
+            <div id="modal-delete-series" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Delete Series {{selected_series}}</h4>
+                  </div>
+                  <div class="modal-body">
+                    <form>
+                        <label> Anda yakin akan menghapus series {{selected_series}} </label>
+                        <input type="hidden" name="series_name" ng-value="selected_series">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Tidak</button>
+                        <button type="button" class="btn btn-danger"
+                                onClick="ajaxForm(this.form,'/delete_series','modal-delete-status','Deleting...',refresh_series_list); return false;">Ya</button>
+                        <div id="modal-delete-status"></div>
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Modal Create Series-->
+            <div id="modal-create-series" class="modal fade" role="dialog">
+              <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Create Series</h4>
+                  </div>
+                  <div class="modal-body">
+                    <form>
+                        <label> Series Name: </label>
+                        <input name="series_name">
+                        </br>
+                        <label> File CSV: </label>
+                        <input type="file" name="csv_file">
+                        </br>
+                        <input type="button" value="upload" 
+                                onClick="ajaxForm(this.form,'/create_series','modal-create-status','Creating...',refresh_series_list); return false;">
+                        <div id="modal-create-status"></div>
+                    </form>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="series-container">
+            </div>
+          </div>
+        </div>
+    </body>
+</html>

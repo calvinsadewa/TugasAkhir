@@ -1,0 +1,18 @@
+Sumber data GDP
+Data Nilai Tukar Harian USD/GBP: DUkascopy
+GDP Amerika : https://www.quandl.com/data/FRED/GDP-Gross-Domestic-Product
+				Frekuensi Quarterly
+GDP Inggris : https://www.ons.gov.uk/economy/grossdomesticproductgdp/timeseries/abmi/pgdp
+				Frekuensi Quarterly
+
+US INFLATION : https://data.bls.gov/timeseries/CUUR0000SA0L1E?output_view=pct_12mths, Dalam Format MoM
+UK INFLATION : https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/consumerpriceinflation/current/consumerpriceinflationdetailedreferencetables.xls
+
+US Interest rate : https://alfred.stlouisfed.org/series?seid=FEDFUNDS&utm_source=series_page&utm_medium=related_content&utm_term=related_resources&utm_campaign=alfred
+UK Interest rate : http://www.bankofengland.co.uk/boeapps/iadb/index.asp?Travel=NIxRPx&From=Repo&C=13T&G0Xtop.x=1&G0Xtop.y=1
+
+US Unemployment rate : https://data.bls.gov/timeseries/LNS14000000
+UK Unemployment rate : https://www.ons.gov.uk/employmentandlabourmarket/peoplenotinwork/unemployment/timeseries/mgsx/lms
+
+US Debt to GDP : https://fred.stlouisfed.org/series/GFDEGDQ188S 
+UK Debt to GDP : https://www.ons.gov.uk/economy/governmentpublicsectorandtaxes/publicsectorfinance/timeseries/hf6x
